@@ -1082,5 +1082,5 @@ ssh-keygen -t rsa
 
 
 
-
-
+#Show permision files in octal
+stat -c "%a %n" stacktrace.log
