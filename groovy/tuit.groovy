@@ -56,18 +56,20 @@ try{
     assert twitter, 'No se pudo contactar a twitter'
 
     if (options.d) {
-        println options.d
         options.d.split(',').each {
-            println it
+            println "send direct message to $it"
             DirectMessage directMessage = twitter.sendDirectMessage(it, message);
         }
-    } else if (options.p) {
+    }
+    if (options.p) {
         Status status = twitter.updateStatus(message);
     }
 
     println("Successfully sent " + message);
-
+    return
 } catch (java.lang.AssertionError ae) {
 } catch (Exception e) {
     e.printStackTrace();
 }
+
+System.exit(1)
