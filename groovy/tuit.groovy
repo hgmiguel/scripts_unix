@@ -1,62 +1,67 @@
 import twitter4j.Twitter
 import twitter4j.TwitterFactory
 import twitter4j.Status
+import twitter4j.DirectMessage
 import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
-import java.io.BufferedReader
-import com.thoughtworks.xstream.XStream
 
+def proccessArguments(args){
+    def cli = new CliBuilder(usage: 'tuit.groovy [-d recipientScreenName]||[-p] message')
+
+    cli.with {
+        d args:1, argName:'recipient,...,rX', longOpt: 'direct-message', 'Send a direct message'
+        p longOpt:'public', 'public message'
+    }
+
+    def options = cli.parse(args) 
+    if(!options || (!options.d && !options.p)) {
+        cli.usage()
+        return
+    }
+    options
+}
+
+
+
+/*
+ * Ver api para saber como conseguir el accessTokenFile
+ * http://twitter4j.org/en/code-examples.html#directMessage
+ */
+def twitterConnectionDance(Map c){
+    Twitter twitter = new TwitterFactory().getInstance();
+    twitter.setOAuthConsumer(c.consumerKey, c.consumerSecret);
+    AccessToken accessToken = null
+    def tokenFile = new File(c.accessTokenFile)
+    if (tokenFile.exists()) {
+        def tokenFileParse = new XmlParser().parse(tokenFile)
+        accessToken = new AccessToken(tokenFileParse.token.text(),tokenFileParse.tokenSecret.text());
+        twitter.setOAuthAccessToken(accessToken)
+    }
+
+    twitter
+}
 
 try{
-
-   Twitter twitter = new TwitterFactory().getInstance();
-
-   // set key and secret that you get from Twitter app registeration at:
-   //     http://dev.twitter.com/pages/auth#register
-
+    Map configuration = [consumerKey:'Dfr3My8xwpg06V27gg0qhw',
+            consumerSecret:'e8zxJ52NdtP9CpwDP4hmXHPxjJUhcoT3LsWFM9bDkY',
+            accessTokenFile:'accessToken.xml'
+        ]
 
 
+    options = proccessArguments(args)
+    assert options, 'revisar los argumentos'
 
-   twitter.setOAuthConsumer("Dfr3My8xwpg06V27gg0qhw", "e8zxJ52NdtP9CpwDP4hmXHPxjJUhcoT3LsWFM9bDkY");
+    println options.d 
+    println options.arguments().join(' ')
 
-   // load access token if it exists
-   AccessToken accessToken = null
-   def tokenFile = new File("accessToken.xml")
 
-   if (tokenFile.exists()) {
-    def tokenFileParse = new XmlParser().parse("accessToken.xml")
-    println "${tokenFileParse.token.text()}"
-    println "${tokenFileParse.token} *** ${tokenFileParse.tokenSecret}"
-
-      accessToken = new AccessToken(tokenFileParse.token.text(),tokenFileParse.tokenSecret.text());
-      twitter.setOAuthAccessToken(accessToken)
-   } 
-
-   else {
-
-     // get the URL to request access to Twitter acct
-     RequestToken requestToken = twitter.getOAuthRequestToken();
-     String authUrl = requestToken.getAuthorizationURL()
-     System.out.println("Open the following URL and grant access to your account:");
-     System.out.println(authUrl);
-
-     // take the PIN and get access token
-     System.out.print("Enter the PIN:");
-     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-     String pin = ""
-     pin = br.readLine();
-     accessToken = twitter.getOAuthAccessToken(requestToken, pin);
-
-     // persist token
-     def xstream = new XStream()
-     xstream.classLoader = getClass().classLoader
-     new File("accessToken.xml").withOutputStream { out -> xstream.toXML(accessToken, out) }
-   }
-
-   String message = "Y aqui vamos..."
-   Status status = twitter.updateStatus(message);
-   System.out.println("Successfully sent " + message);
+    //Twitter twitter = twitterConnectionShow(configuration)
+    
+    String message = "Y aqui vamos otra vez..."
+    //Status status = twitter.updateStatus(message);
+    DirectMessage directMessage = twitter.sendDirectMessage("hgmiguel", message);
+    System.out.println("Successfully sent " + message);
 
 } catch (Exception e) {
-   e.printStackTrace();
+    e.printStackTrace();
 }
