@@ -6,7 +6,7 @@ import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
 
 def proccessArguments(args){
-    def cli = new CliBuilder(usage: 'tuit.groovy [-d recipientScreenName]||[-p] message')
+    def cli = new CliBuilder(usage: 'tuit.groovy [-d recipientScreenName] [-p] message')
 
     cli.with {
         d args:1, argName:'recipient,...,rX', longOpt: 'direct-message', 'Send a direct message'
@@ -50,18 +50,24 @@ try{
 
     options = proccessArguments(args)
     assert options, 'revisar los argumentos'
+    message = options.arguments().join(' ')
 
-    println options.d 
-    println options.arguments().join(' ')
+    Twitter twitter = twitterConnectionDance(configuration)
+    assert twitter, 'No se pudo contactar a twitter'
 
+    if (options.d) {
+        println options.d
+        options.d.split(',').each {
+            println it
+            DirectMessage directMessage = twitter.sendDirectMessage(it, message);
+        }
+    } else if (options.p) {
+        Status status = twitter.updateStatus(message);
+    }
 
-    //Twitter twitter = twitterConnectionShow(configuration)
-    
-    String message = "Y aqui vamos otra vez..."
-    //Status status = twitter.updateStatus(message);
-    DirectMessage directMessage = twitter.sendDirectMessage("hgmiguel", message);
-    System.out.println("Successfully sent " + message);
+    println("Successfully sent " + message);
 
+} catch (java.lang.AssertionError ae) {
 } catch (Exception e) {
     e.printStackTrace();
 }
