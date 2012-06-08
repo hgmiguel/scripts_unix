@@ -6,11 +6,12 @@ import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
 
 def proccessArguments(args){
-    def cli = new CliBuilder(usage: 'tuit.groovy [-d recipientScreenName] [-p] message')
+    def cli = new CliBuilder(usage: 'tuit.groovy -f credentials.xml [-d recipientScreenName] [-p] message')
 
     cli.with {
         d args:1, argName:'recipient,...,rX', longOpt: 'direct-message', 'Send a direct message'
         p longOpt:'public', 'public message'
+        f args:1, argName:'file with twitter credentials', longOpt:'credentials', 'Archivo xml con el token de autenticacion'
     }
 
     def options = cli.parse(args) 
@@ -42,14 +43,16 @@ def twitterConnectionDance(Map c){
 }
 
 try{
+    options = proccessArguments(args)
+    assert options, 'revisar los argumentos'
+
+    assert options.f, 'Se necesita archivo con el token de auttenticacion'
     Map configuration = [consumerKey:'Dfr3My8xwpg06V27gg0qhw',
             consumerSecret:'e8zxJ52NdtP9CpwDP4hmXHPxjJUhcoT3LsWFM9bDkY',
-            accessTokenFile:'accessToken.xml'
+            accessTokenFile:options.f
         ]
 
 
-    options = proccessArguments(args)
-    assert options, 'revisar los argumentos'
     message = options.arguments().join(' ')
 
     Twitter twitter = twitterConnectionDance(configuration)
@@ -68,6 +71,7 @@ try{
     println("Successfully sent " + message);
     return
 } catch (java.lang.AssertionError ae) {
+    println ae
 } catch (Exception e) {
     e.printStackTrace();
 }
