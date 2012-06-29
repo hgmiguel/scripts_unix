@@ -20,6 +20,8 @@ def send_command(botonazos):
         os.system("xdotool key i")
     elif (botonazos == 1):
         os.system("xdotool key Escape")
+    elif (botonazos == 2):
+        os.system("xdotool key period")
     elif (botonazos == 5):
         os.system("xdotool key F12")
     print "botonazos:", botonazos
@@ -43,7 +45,7 @@ while 1:
 
     if (start > 0):
         lapso =  time.time() - start 
-        if (lapso >= 1.5 and activo == 1):
+        if (lapso >= 1.01 and activo == 1):
             print "lapso canceloso"
             send_command(botonazos)
             timer.cancel()
