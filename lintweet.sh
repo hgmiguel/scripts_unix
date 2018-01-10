@@ -6,3 +6,6 @@ do
     sleep 30
 done 
 exit
+
+
+esto se debe de ir
